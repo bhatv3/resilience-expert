@@ -1,0 +1,32 @@
+{
+  "name": "resilience-expert",
+  "version": "2.0.0",
+  "description": "Composable resiliency analysis for Java, Go, and Python.",
+  "runtime": "claude-code",
+  "commands": [
+    {
+      "name": "resilience-analyze",
+      "file": "commands/resilience-analyze.md",
+      "description": "Runs specific architectural checks (lenses). Default: Runs ALL.",
+      "parameters": {
+        "lens": "Specific lens to run: 'planes', 'acl', 'modulith', or 'all' (default)",
+        "scope": "Directory to analyze (default: .)"
+      }
+    },
+    {
+      "name": "resilience-map",
+      "file": "commands/resilience-map.md",
+      "description": "Generates the Module & Entry Point map (Phase 1 only).",
+      "parameters": {
+        "scope": "Directory to map (default: .)"
+      }
+    }
+  ],
+  "skills": [
+    "skills/main.md",
+    "skills/discovery.md",
+    "skills/lenses.md",
+    "skills/verification.md",
+    "skills/reporting.md"
+  ]
+}
