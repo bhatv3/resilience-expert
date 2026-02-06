@@ -85,6 +85,8 @@ Severity must be justified by evidence and impact, not intuition.
 - No backlog items without a corresponding finding
 - Unknowns must be explicitly documented
 - Improvements must be scoped to Phase 1 unless explicitly stated otherwise
+- When reporting is generated from a single-lens analysis, outputs must remain scoped to that lens and must not assume coverage from other lenses.
+- Aggregated prioritization across lenses is expected only when `lens=all` is used.
 
 ---
 

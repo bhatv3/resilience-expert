@@ -55,6 +55,8 @@ For each dependency, record:
 - call sites with evidence
 - best effort call-path classification
 
+For datastore dependencies, attempt to capture concrete identifiers (e.g., table names, schemas, cluster endpoints) when they are visible in code or configuration; otherwise mark as `unknown`.
+
 Do not infer behavior or reliability characteristics.
 
 ---

@@ -81,7 +81,26 @@ Guidelines:
 ---
 
 ## Outputs
-Write all outputs under a `resilience/` directory.
+Write all outputs under a `resilience/` directory or a lens-scoped subdirectory, depending on the selected lens.
+
+### Output Scoping by Lens
+
+If the `lens` parameter is set to a specific lens (i.e., not `all`), all outputs MUST be written under a lens-scoped directory:
+
+`resilience/lens_<lens_name>/`
+
+Examples:
+- `resilience/lens_control-plane/`
+- `resilience/lens_domain-decoupling/`
+- `resilience/lens_modulith/`
+- `resilience/lens_dependency-isolation/`
+
+This ensures:
+- independent execution per lens
+- no overwriting of prior results
+- easier review and prioritization by teams
+
+When `lens=all`, outputs MUST be written to the default `resilience/` directory and represent the aggregated Phase 1 view.
 
 Required artifacts (Phase 1 bundle):
 1) `resilience/role_assessment.md`

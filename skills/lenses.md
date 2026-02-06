@@ -54,7 +54,7 @@ Prevent configuration, policy, and control enforcement logic from destabilizing 
     - local caching or last-known-good snapshots
     - explicit timeouts, circuit breakers, or fail-open defaults
 - Shared clients, connection pools, or executors used by both planes
-
+- Evidence that control-plane and operational-plane code paths reference the same datastore identifiers (e.g., table names, keyspaces, cluster endpoints)
 ---
 
 ### Improvement Candidates (Examples)

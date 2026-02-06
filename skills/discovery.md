@@ -67,24 +67,31 @@ If invocation context is ambiguous, mark as `unknown`.
 Observed outbound dependencies referenced in the codebase.
 
 For each dependency:
-- id (stable; derived from dependency_name + primary call site)
-- dependency_name (logical name)
-- client_identifier (best effort: client class name, host, SDK)
+- dependency_name (logical name; e.g., dynamodb, redis, mysql, accounts-service)
 - dependency_type:
     - internal_service
     - third_party_api
     - datastore
     - queue_or_stream
-- call_sites[] with evidence
+
+- client_identifier (best effort; evidence-backed):
+    - datastore examples:
+        - DynamoDB table name(s)
+        - Redis cluster endpoint + DB index or key prefix (if visible)
+        - SQL database/schema name
+    - service examples:
+        - client class
+        - base URL / service identifier
+- call_sites[] with evidence (file + line range)
 - call_path (best effort):
     - `sync_operational`
     - `async`
     - `control_plane`
     - `unknown`
-- invocation_style (best effort): `blocking` | `async` | `unknown`
-- fanout_hint (best effort): `single` | `multi` | `unknown`
 
-Do not infer dependency semantics, guarantees, or SLAs.
+Notes:
+- Do not infer datastore semantics or guarantees.
+- If identifiers (table names, key prefixes, endpoints) cannot be determined from code or config, mark as `unknown`.
 
 ---
 
