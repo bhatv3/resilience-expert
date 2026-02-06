@@ -34,6 +34,7 @@ Discovery produces a single normalized model with the following sections.
 Operational execution entrypoints into the system.
 
 For each entrypoint, capture:
+- id (stable; derived from name + file path)
 - name
 - type: `sync` | `async`
 - framework
@@ -66,7 +67,9 @@ If invocation context is ambiguous, mark as `unknown`.
 Observed outbound dependencies referenced in the codebase.
 
 For each dependency:
-- dependency_name
+- id (stable; derived from dependency_name + primary call site)
+- dependency_name (logical name)
+- client_identifier (best effort: client class name, host, SDK)
 - dependency_type:
     - internal_service
     - third_party_api
@@ -78,6 +81,8 @@ For each dependency:
     - `async`
     - `control_plane`
     - `unknown`
+- invocation_style (best effort): `blocking` | `async` | `unknown`
+- fanout_hint (best effort): `single` | `multi` | `unknown`
 
 Do not infer dependency semantics, guarantees, or SLAs.
 

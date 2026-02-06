@@ -27,8 +27,8 @@ Examples:
 - Do not infer production topology (regions, AZs, deployment shape) unless explicitly present in repo/config.
 - Do not infer SLOs/SLA targets without a cited source.
 - Do not assume default failure posture (fail-open/closed) unless evidence exists.
-- Do not use vague language ("likely", "probably") for factual claims.
-    - Use UNKNOWN + a validation question instead.
+- Do not use vague or hedge language ("likely", "probably") for factual claims.
+    - Use `UNKNOWN` + a validation question instead.
 
 ---
 
@@ -42,33 +42,62 @@ When evidence is missing or ambiguous:
 Validation questions must:
 - state what is unknown
 - point to relevant code/config areas
-- explain why it matters (risk/impact)
+- explain why it matters (risk or impact)
 
 ---
 
 ## Confidence Scoring
 Each finding must include confidence:
-- High: direct evidence in code/config
-- Medium: partial evidence; some ambiguity remains
-- Low: weak evidence; must be framed as a question or investigation candidate
+- **High:** direct evidence in code/config
+- **Medium:** partial evidence; some ambiguity remains
+- **Low:** weak evidence; must be framed as a question or investigation candidate
 
-Low confidence findings should not produce P0 work items unless the risk is clearly severe and evidence supports the risk mechanism.
+Low-confidence findings should not produce P0 work items unless:
+- the risk mechanism is clearly evidenced, and
+- the potential customer impact is severe
+
+---
+
+## Recommendations vs Investigation
+Not all findings require an immediate concrete fix.
+
+If evidence is insufficient to recommend a specific change:
+- The recommendation may be an **investigation or validation task**
+- Such items should explicitly state what needs to be validated and why
+
+This avoids forcing premature solutions and preserves Phase 1’s analysis-first intent.
+
+---
+
+## Customer Impact Guidance
+Customer impact should describe **observable behavior**, such as:
+- increased latency
+- failed or delayed verifications
+- retries or fallback behavior
+- partial loss of functionality
+
+Avoid framing impact purely in internal or architectural terms without connecting it to user-visible effects.
 
 ---
 
 ## Consistency Checks (Before Emitting Outputs)
 Before writing final artifacts:
 1) Ensure every finding includes:
-    - severity, confidence, evidence, customer impact, recommended change, validation
+    - severity
+    - confidence
+    - evidence
+    - customer impact
+    - recommended change or investigation
+    - validation notes (if applicable)
 2) Ensure backlog items map to findings (no orphan tickets).
 3) Ensure diagrams reflect discovery facts only (no proposed topology changes).
-4) Ensure Phase 1 scope is respected (no multi-region / active-active proposals).
+4) Ensure Phase 1 scope is respected (no multi-region or active-active proposals).
 
 ---
 
 ## Output Quality Bar
 Outputs are acceptable only if:
-- A reviewer can trace each finding to evidence
-- Unknowns are explicitly captured
-- Recommendations are actionable and scoped to Phase 1
-- The backlog is coherent and importable into planning
+- A reviewer can trace each finding directly to evidence
+- Unknowns are explicitly captured and explained
+- Recommendations are actionable or clearly investigative
+- The backlog is coherent and importable into planning systems

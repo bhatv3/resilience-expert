@@ -53,7 +53,7 @@ Identify outbound dependencies referenced in the repository:
 For each dependency, record:
 - dependency name and type
 - call sites with evidence
-- best-effort call-path classification
+- best effort call-path classification
 
 Do not infer behavior or reliability characteristics.
 
