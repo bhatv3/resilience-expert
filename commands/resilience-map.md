@@ -65,10 +65,10 @@ Do not infer behavior or reliability characteristics.
 Write all outputs under a `resilience/` directory.
 
 ### Required outputs
-1) `resilience/discovery.json`
+1) `resilience/discovery/discovery.json`
    A structured JSON document conforming to the model defined in `skills/discovery.md`.
 
-2) `resilience/arch-before.mmd`
+2) `resilience/discovery/arch-before.mmd`
    A Mermaid diagram representing the current state:
 - role boundary
 - operational entrypoints

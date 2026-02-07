@@ -9,8 +9,9 @@ This command must be evidence-backed, Phase 1 scoped, and must not assume topolo
 
 ## Inputs
 - One or more repositories (local workspace).
-- Optional: an existing `resilience/discovery.json` produced by `/resilience-map`.
-    - If not present, run the equivalent discovery steps inline (best effort), limited to the scope needed for the selected lenses, and mark unknowns explicitly.
+- Optional: an existing discovery artifact produced by `/resilience-map`:
+    - `resilience/discovery/discovery.json`
+- If discovery is not present, run the equivalent discovery steps inline (best effort), limited to the scope needed for the selected lenses, and mark unknowns explicitly.
 
 Optional parameters (best effort if supported):
 - `lens`: one of `{control-plane, domain-decoupling, modulith, dependency-isolation, all}` (default: `all`)
@@ -22,8 +23,8 @@ Optional parameters (best effort if supported):
 ## Execution Steps (Do These In Order)
 
 ### 1) Load or Generate Discovery Map
-If `resilience/discovery.json` exists, load it.
-Otherwise, generate a best-effort discovery map that captures at minimum:
+If `resilience/discovery/discovery.json` exists, load it.
+Otherwise, generate a best-effort discovery map inline that captures at minimum:
 - operational entrypoints
 - control-plane operations (best effort)
 - dependencies and call sites (best effort)
@@ -35,7 +36,7 @@ Notes:
 ### 2) Select Critical Entrypoints / Flows
 Select up to N critical operational entrypoints to anchor analysis:
 - prefer explicitly configured "critical flows" if present
-- otherwise choose by best-effort heuristics:
+- otherwise choose by best effort heuristics:
     - centrality (high fan-out)
     - business importance (send/check verification, fallback, callbacks/consumers)
     - frequency indicators (if detectable)
@@ -81,37 +82,53 @@ Guidelines:
 ---
 
 ## Outputs
-Write all outputs under a `resilience/` directory or a lens-scoped subdirectory, depending on the selected lens.
 
-### Output Scoping by Lens
+### Output Scoping
+All analysis outputs MUST be written under `resilience/` using the following structure:
 
-If the `lens` parameter is set to a specific lens (i.e., not `all`), all outputs MUST be written under a lens-scoped directory:
-
-`resilience/lens_<lens_name>/`
+- Per-lens outputs:
+    - `resilience/lens_<lens_name>/` for lens-scoped artifacts
+- Aggregated outputs (only when `lens=all`):
+    - `resilience/summary/` for the combined Phase 1 view
 
 Examples:
 - `resilience/lens_control-plane/`
 - `resilience/lens_domain-decoupling/`
 - `resilience/lens_modulith/`
 - `resilience/lens_dependency-isolation/`
+- `resilience/summary/`
 
-This ensures:
-- independent execution per lens
-- no overwriting of prior results
-- easier review and prioritization by teams
+---
 
-When `lens=all`, outputs MUST be written to the default `resilience/` directory and represent the aggregated Phase 1 view.
+### Per-lens outputs (always)
+Write lens-scoped artifacts under:
+- `resilience/lens_<lens_name>/`
 
-Required artifacts (Phase 1 bundle):
-1) `resilience/role_assessment.md`
-2) `resilience/backlog.csv`
-3) `resilience/dependency_inventory.csv`
-    - Catalog of dependencies referenced by findings, including call path and criticality classification (best effort).
-4) `resilience/arch-before.mmd`
-5) `resilience/arch-after.mmd` (optional; only when Phase 1 internal boundary changes are identified)
+Each lens folder MUST include:
+1) `role_assessment.md`
+2) `backlog.csv`
+3) `dependency_inventory.csv` (optional; only if relevant to that lens)
+4) `arch-after.mmd` (optional; only if Phase 1 internal boundary changes are identified by that lens)
 
 Notes:
-- `arch-before.mmd` must reflect discovery facts only.
+- Per-lens outputs must not assume coverage from other lenses.
+- If a lens yields no meaningful findings, still emit `role_assessment.md` with “No findings” and list any open questions.
+
+---
+
+### Aggregated outputs (only when `lens=all`)
+When `lens=all`, write the combined Phase 1 bundle under:
+- `resilience/summary/`
+
+Required aggregated artifacts:
+1) `resilience/summary/role_assessment.md`
+2) `resilience/summary/backlog.csv`
+3) `resilience/summary/dependency_inventory.csv`
+4) `resilience/summary/arch-before.mmd`
+5) `resilience/summary/arch-after.mmd` (optional)
+
+Notes:
+- `arch-before.mmd` for summary MUST be derived from discovery (e.g., `resilience/discovery/arch-before.mmd`) and must reflect discovery facts only.
 - `arch-after.mmd` must not introduce new regions or deployment units.
 - If no meaningful internal boundary changes are identified, do not generate `arch-after.mmd`.
 
