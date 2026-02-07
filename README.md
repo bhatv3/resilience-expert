@@ -4,6 +4,32 @@ This plugin helps analyze and improve service resiliency in a **composable, evid
 It is designed to be run **incrementally**, not all at once.
 
 ---
+## Prerequisites
+•	Claude Code CLI installed
+•	Target repository checked out locally
+•	resilience-expert plugin checked out locally
+•	Claude started from the repo you want to analyze
+
+
+## Running the Resiliency Plugin
+
+From the root of the service repository you want to analyze:
+```
+cd <service-repo>
+export CLAUDE_CODE_MAX_OUTPUT_TOKENS=16384
+claude --plugin-dir ../resilience-expert
+```
+
+Claude will analyze the current working directory as the target repository, using the resiliency skills and commands provided by the resilience-expert plugin.
+
+Once Claude starts, run:
+```
+/resilience-map
+/resilience-analyze –lens=control-plane | –lens=dependency-isolation | –lens=domain-decoupling | –lens=modulith
+```
+
+
+---
 
 ## Core workflow
 
