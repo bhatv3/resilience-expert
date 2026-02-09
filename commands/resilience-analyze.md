@@ -21,7 +21,7 @@ If discovery is not present:
 ## Parameters
 - `lens`: one of `{plane-separation, domain-decoupling, modulith, dependency-isolation, all}` (default: `all`)
 - `phase`: `1` (default and only supported)
-- `flows`: N critical entrypoints to focus on (default: `3`)
+- `flows`: N critical entrypoints to focus on (default: `5`)
 
 ---
 
