@@ -3,11 +3,11 @@
 ## Purpose
 Identify the language, framework, and operational entrypoints of a repository in order to scope discovery and resiliency analysis correctly.
 
-This skill establishes factual execution context and provides shared inputs to:
+This skill establishes **factual execution context** and provides shared inputs to:
 - `/resilience-map` (discovery)
 - `/resilience-analyze` (lens-based analysis)
 
-All downstream analysis must rely on the outputs of this skill rather than inferring or guessing.
+All downstream analysis **must rely on the outputs of this skill** rather than inferring or guessing.
 
 ---
 
@@ -18,10 +18,13 @@ This skill is responsible for:
 - Identification of synchronous vs asynchronous execution entrypoints
 - Producing normalized, evidence-backed entrypoint metadata for downstream skills
 
-Non-goals:
+This skill is **intentionally limited** to identifying *how execution enters the system*, not *what happens inside*.
+
+### Non-goals
 - Proposing resiliency improvements
 - Applying architectural lenses
-- Inferring deployment topology, regions, or infrastructure characteristics
+- Classifying control-plane vs operational behavior
+- Inferring deployment topology, regions, replication, or infrastructure characteristics
 
 ---
 
@@ -37,7 +40,9 @@ Detect the primary runtime language and framework using repository signals.
     - Spring Boot
     - Quarkus
     - Jakarta EE / JAX-RS
-- If multiple modules exist, identify the primary deployable when metadata is present; otherwise enumerate and mark ambiguity.
+- If multiple modules exist:
+    - Identify the primary deployable when metadata is present
+    - Otherwise enumerate candidates and mark ambiguity explicitly
 
 #### Go
 - Look for: `go.mod`
@@ -56,7 +61,7 @@ Detect the primary runtime language and framework using repository signals.
 If multiple languages are present:
 - Identify the primary runtime
 - Mark others as secondary
-- Emit an ambiguity note if ownership or role scope is unclear
+- Emit an ambiguity note if ownership, deployable boundary, or role scope is unclear
 
 ---
 
@@ -64,8 +69,8 @@ If multiple languages are present:
 
 Identify inbound execution entrypoints and classify them by execution model.
 
-This step focuses on **operational execution paths**.
-Classification of control-plane vs operational behavior is handled later during discovery.
+This step focuses **only on operational execution entrypoints**.
+Classification of control-plane vs operational behavior is deferred to discovery and lens analysis.
 
 #### Synchronous Entrypoints (`type: sync`)
 
@@ -97,14 +102,14 @@ Classification of control-plane vs operational behavior is handled later during 
     - Background consumers or workers
 
 For each entrypoint, capture:
-- id (stable; derived from name + file path)
-- name (function / class / handler)
-- type: `sync` | `async`
-- framework
-- route / topic / queue (if detectable)
-- evidence: file path + line range
+- `id` (stable; derived from name + file path)
+- `name` (function / class / handler)
+- `type`: `sync` | `async`
+- `framework`
+- `binding` (route / topic / queue / schedule, if detectable)
+- `evidence`: file path + line range
 
-Entrypoints identified here are authoritative.
+Entrypoints identified here are **authoritative**.
 Additional entrypoints may only be added later with explicit evidence.
 
 ---
@@ -114,7 +119,7 @@ Additional entrypoints may only be added later with explicit evidence.
 Store detected information as shared context for downstream skills, including:
 - detected primary language and framework
 - secondary languages (if any)
-- list of entrypoints with sync/async classification
+- list of operational entrypoints with sync/async classification
 - evidence for each detection
 - ambiguity notes or open questions (if applicable)
 
@@ -123,7 +128,7 @@ This context must be consumed by:
 - `skills/lenses.md`
 - `skills/reporting.md`
 
-Downstream confidence must reflect the confidence of this detection step.
+Downstream confidence **must not exceed** the confidence established in this step.
 
 ---
 
@@ -134,5 +139,6 @@ Downstream confidence must reflect the confidence of this detection step.
 - Do not infer:
     - deployment topology
     - resiliency behavior
+    - data locality or regionality
     - SLAs or SLOs
-- This output must be suitable for direct review by an engineer.
+- Output must be suitable for direct review by an engineer.

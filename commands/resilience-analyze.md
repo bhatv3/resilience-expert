@@ -1,7 +1,7 @@
 # Command: /resilience-analyze
 
 ## Intent
-Analyze a role/service repository using the Architectural Lenses and produce Phase 1 resiliency artifacts that are directly consumable for prioritization and execution.
+Analyze a role/service repository using the Resiliency Analysis Lenses and produce Phase 1 artifacts that are directly consumable for prioritization and execution.
 
 This command must be evidence-backed, Phase 1 scoped, and must not assume topology changes.
 
@@ -11,10 +11,15 @@ This command must be evidence-backed, Phase 1 scoped, and must not assume topolo
 - One or more repositories (local workspace).
 - Optional: an existing discovery artifact produced by `/resilience-map`:
     - `resilience/discovery/discovery.json`
-- If discovery is not present, run the equivalent discovery steps inline (best effort), limited to the scope needed for the selected lenses, and mark unknowns explicitly.
 
-Optional parameters (best effort if supported):
-- `lens`: one of `{control-plane, domain-decoupling, modulith, dependency-isolation, all}` (default: `all`)
+If discovery is not present:
+- Run the equivalent discovery steps inline (best effort), limited to what is required by the selected lenses.
+- Mark unknowns explicitly and emit validation questions.
+
+---
+
+## Parameters
+- `lens`: one of `{plane-separation, domain-decoupling, modulith, dependency-isolation, all}` (default: `all`)
 - `phase`: `1` (default and only supported)
 - `flows`: N critical entrypoints to focus on (default: `3`)
 
@@ -22,21 +27,25 @@ Optional parameters (best effort if supported):
 
 ## Execution Steps (Do These In Order)
 
-### 1) Load or Generate Discovery Map
+### 1) Load or Generate Discovery
 If `resilience/discovery/discovery.json` exists, load it.
-Otherwise, generate a best-effort discovery map inline that captures at minimum:
-- operational entrypoints
+
+Otherwise generate a minimal inline discovery model sufficient for the selected lenses:
+- operational entrypoints (required)
 - control-plane operations (best effort)
 - dependencies and call sites (best effort)
+- regionalization_facts (optional best effort)
 
 Notes:
-- Do not force “virtual module” inference during inline discovery.
-- All unknowns must be explicitly labeled and surfaced as validation questions.
+- Do not force virtual module inference during inline discovery.
+- Unknowns must be captured as validation questions.
+
+---
 
 ### 2) Select Critical Entrypoints / Flows
 Select up to N critical operational entrypoints to anchor analysis:
-- prefer explicitly configured "critical flows" if present
-- otherwise choose by best effort heuristics:
+- Prefer repo metadata “critical flows” if present.
+- Otherwise select using best effort heuristics:
     - centrality (high fan-out)
     - business importance (send/check verification, fallback, callbacks/consumers)
     - frequency indicators (if detectable)
@@ -45,34 +54,40 @@ Record:
 - selected entrypoints (with evidence)
 - selection rationale
 
-### 3) Apply Lenses
-For each selected lens, produce findings that conform to the lens contracts in `skills/lenses.md` and the rigor rules in `skills/verification.md`.
+---
 
-Supported lenses:
-- Lens 1: Control Plane vs Operational Plane Separation
+### 3) Apply Selected Lenses
+Apply the requested lens set:
+- Lens 1: Plane Separation (Control vs Operational)
 - Lens 2: Domain Decoupling via Explicit Interfaces
 - Lens 3: Monolith → Modulith (Lightweight, Improvement-Driven)
-- Lens 4: Dependency Criticality & Isolation
+- Lens 4: Dependency Criticality and Isolation
+
+For each lens finding, conform to:
+- `skills/lenses.md` (lens-specific patterns + candidates)
+- `skills/verification.md` (rigor rules)
+- `skills/reporting.md` (output shape)
 
 Each finding MUST include:
-- severity (`P0`/`P1`/`P2`)
-- confidence (`High`/`Medium`/`Low`)
-- evidence (file + line range or config key + location)
+- severity: `P0` | `P1` | `P2`
+- confidence: `High` | `Medium` | `Low`
+- evidence: file + line range (or config key + location)
 - impacted entrypoints (if applicable)
 - why customers care (1 sentence)
 - recommended change (1–3 bullets) OR investigation task (if evidence is insufficient)
-- validation (1–3 bullets)
+- validation steps (1–3 bullets)
 
 If evidence cannot be found:
-- mark as `UNKNOWN`
+- mark the finding as `UNKNOWN`
 - emit a validation question instead of a recommendation
 
-### 4) Consolidate and Prioritize Improvements
-Combine findings into a set of actionable improvements and assign:
-- priority (`P0`/`P1`/`P2`) using the rubric in `skills/reporting.md`
-- effort (`S`/`M`/`L`) as a best-effort estimate
-- expected customer impact
-- validation plan
+---
+
+### 4) Convert Findings into Executable Backlog Items
+For the selected lens(es):
+- translate findings into backlog-ready items
+- assign priority (`P0`/`P1`/`P2`) and effort (`S`/`M`/`L`) as best effort estimates
+- ensure each backlog item maps 1:1 to a finding
 
 Guidelines:
 - Avoid combining unrelated changes into one item.
@@ -83,54 +98,36 @@ Guidelines:
 
 ## Outputs
 
-### Output Scoping
-All analysis outputs MUST be written under `resilience/` using the following structure:
+### Output Structure
+All outputs are written under `resilience/` using **lens-scoped directories only**.
 
-- Per-lens outputs:
-    - `resilience/lens_<lens_name>/` for lens-scoped artifacts
-- Aggregated outputs (only when `lens=all`):
-    - `resilience/summary/` for the combined Phase 1 view
+There is **no aggregated summary output**.
 
-Examples:
-- `resilience/lens_control-plane/`
-- `resilience/lens_domain-decoupling/`
-- `resilience/lens_modulith/`
-- `resilience/lens_dependency-isolation/`
-- `resilience/summary/`
+resilience/
+    ├── discovery/
+    │   ├── discovery.json
+    │   └── arch-before.mmd
+    ├── lens_plane-separation/
+    ├── lens_domain-decoupling/
+    ├── lens_modulith/
+    └── lens_dependency-isolation/
 
----
-
-### Per-lens outputs (always)
+### Per-lens Outputs (always)
 Write lens-scoped artifacts under:
 - `resilience/lens_<lens_name>/`
 
 Each lens folder MUST include:
 1) `role_assessment.md`
 2) `backlog.csv`
-3) `dependency_inventory.csv` (optional; only if relevant to that lens)
-4) `arch-after.mmd` (optional; only if Phase 1 internal boundary changes are identified by that lens)
+
+Optional per lens (only when relevant / evidenced):
+3) `dependency_inventory.csv`
+4) `arch-after.mmd`
 
 Notes:
-- Per-lens outputs must not assume coverage from other lenses.
+- Per-lens outputs must stand on their own.
 - If a lens yields no meaningful findings, still emit `role_assessment.md` with “No findings” and list any open questions.
-
----
-
-### Aggregated outputs (only when `lens=all`)
-When `lens=all`, write the combined Phase 1 bundle under:
-- `resilience/summary/`
-
-Required aggregated artifacts:
-1) `resilience/summary/role_assessment.md`
-2) `resilience/summary/backlog.csv`
-3) `resilience/summary/dependency_inventory.csv`
-4) `resilience/summary/arch-before.mmd`
-5) `resilience/summary/arch-after.mmd` (optional)
-
-Notes:
-- `arch-before.mmd` for summary MUST be derived from discovery (e.g., `resilience/discovery/arch-before.mmd`) and must reflect discovery facts only.
-- `arch-after.mmd` must not introduce new regions or deployment units.
-- If no meaningful internal boundary changes are identified, do not generate `arch-after.mmd`.
+- `arch-after.mmd` is optional and must not be forced; it is generated only when internal boundary changes are evidenced and meaningful.
 
 ---
 
@@ -145,6 +142,6 @@ Notes:
 ## Phase Boundaries
 This command:
 - Produces Phase 1 outputs only
-- Does not propose topology changes (multi-region, active-active)
+- Does not propose topology changes (multi-region, active-active, new deployables)
 - Does not mandate microservices
-- Produces inputs for Phase 2/3 decisions (topology and regionalization)
+- Produces inputs suitable for Phase 2/3 decisions (topology and regionalization), without asserting them
