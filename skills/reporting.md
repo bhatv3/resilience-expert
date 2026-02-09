@@ -159,25 +159,126 @@ Severity MUST be justified by:
 
 ## Diagram Outputs
 
-### `arch-before.mmd`
-- Source of truth for current architecture
-- Reflects discovery facts only
-- No inferred behavior or proposed changes
-- Generated from `resilience/discovery/`
+### Mermaid Generation Rules (Non-Negotiable)
 
-### `arch-after.mmd` (Optional, Per Lens)
-Generated **only when a lens identifies meaningful Phase 1 internal boundary changes**, such as:
-- control-plane vs operational-plane separation
-- durable internal module boundaries
-- explicit adapter / facade boundaries
+To avoid Mermaid syntax errors, all generated `.mmd` files must follow these rules:
 
-Rules:
-- No new deployment units
-- No new regions
-- No active-active assumptions
-- Conceptual boundaries only
+**Node IDs**
+- Node IDs MUST be sanitized and machine-safe.
+- Allowed characters: `[A–Z][a–z][0–9]_`
+- IDs MUST NOT contain spaces or special characters (`{ } ( ) [ ] : " ' < > /`)
+- IDs MUST NOT encode human-readable information.
+- Prefer simple deterministic IDs (e.g., `N001`, `N002`, …).
 
-If no such changes are identified, `arch-after.mmd` must **not** be generated.
+**Node Labels**
+- Human-readable information (file paths, method names, service names) MUST appear only in labels.
+- Labels MUST be quoted using square brackets: N001[“VerificationResource.java:200–204”]
+- Quotes inside labels MUST be normalized (`"` → `'`).
+- Newlines MUST be replaced with spaces.
+
+**Edges**
+- Avoid edge labels unless necessary.
+- If used, edge labels MUST be short and free of special characters.
+
+**Prohibited**
+- Using file paths, method signatures, or URLs as node IDs.
+- Using `{}` or `()` node shapes when labels contain punctuation.
+
+All diagrams that violate these rules are considered invalid outputs.
+
+### arch-before.mmd
+•	Source of truth for current architecture
+•	Reflects discovery facts only
+•	No inferred behavior or proposed changes
+•	Generated from resilience/discovery/
+
+### arch-after.mmd (Per Lens)
+
+arch-after.mmd is used to visualize Phase 1 internal boundary changes within the existing deployment topology.
+It is not a future-state or topology diagram.
+
+#### Lens 1: Plane Separation (Control vs Operational)
+
+Generate arch-after.mmd when findings include:
+•	separating control-plane reads/writes from operational execution paths
+•	introducing async control refresh instead of synchronous calls
+•	isolating control-plane persistence or caches from operational traffic
+•	separate executors or request paths for control vs operational work
+
+Diagram should show:
+•	explicit control-plane vs operational-plane boundaries
+•	which components move off the request path
+•	persistence or cache separation (conceptual)
+
+Do NOT show:
+•	new services
+•	regional placement
+•	control-plane ownership changes
+
+⸻
+
+#### Lens 2: Domain Decoupling via Explicit Interfaces
+
+Generate arch-after.mmd when findings include:
+•	introducing adapters, facades, or anti-corruption layers
+•	consolidating multiple integration call sites into a single boundary
+•	normalizing external contracts or error semantics
+•	removing direct dependency on upstream internals
+
+Diagram should show:
+•	explicit adapter/facade boundaries
+•	Verify-owned interfaces vs external domains
+•	directionality of dependencies
+
+This lens is the strongest candidate for arch-after diagrams.
+
+⸻
+
+#### Lens 3: Monolith → Modulith
+
+Generate arch-after.mmd when findings include:
+•	identifying durable internal subsystems (routing, verification core, fraud, provider integration)
+•	isolating execution resources (executors, queues, caches) per subsystem
+•	removing hidden propagation paths between concerns
+
+Diagram should show:
+•	internal module boundaries within the role
+•	ownership and dependency direction
+•	failure isolation points
+
+Do NOT generate if findings are purely code hygiene or refactoring suggestions without boundary implications.
+
+⸻
+
+#### Lens 4: Dependency Criticality & Isolation
+
+Generate arch-after.mmd ONLY when findings include:
+•	introducing bulkheads or per-dependency executors
+•	moving non-critical dependencies off the request path
+•	restructuring dependency access patterns (sync → async, cached → remote)
+
+Diagram should show:
+•	dependency isolation points
+•	critical vs non-critical paths
+•	where degradation or fail-open occurs
+
+Do NOT generate for:
+•	timeout tuning
+•	retry policy changes
+•	client configuration-only improvements
+
+(This lens is usually behavioral, not structural.)
+
+⸻
+
+#### Global Rules (Apply to All Lenses)
+•	No new deployment units
+•	No regions or cells
+•	No failover or HA semantics
+•	No inferred topology changes
+•	Boundaries must be inside the existing role
+
+If a lens produces only behavioral changes, arch-after.mmd must not be generated.
 
 ---
 

@@ -127,7 +127,7 @@ Optional per lens (only when relevant / evidenced):
 Notes:
 - Per-lens outputs must stand on their own.
 - If a lens yields no meaningful findings, still emit `role_assessment.md` with “No findings” and list any open questions.
-- `arch-after.mmd` is optional and must not be forced; it is generated only when internal boundary changes are evidenced and meaningful.
+- arch-after.mmd (optional, but SHOULD be generated when the lens identifies at least one boundary-strengthening improvement—e.g., adapters/facades for domain-decoupling, caching/LKG boundaries for plane-separation, or internal module seams for modulith. Diagrams must remain conceptual and must not introduce new deployment units or regions.)
 
 ---
 
