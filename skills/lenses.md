@@ -294,12 +294,46 @@ Verify degrades gracefully under dependency failure instead of amplifying outage
 
 ---
 
-## Lens Output Requirements
-Each lens must emit findings that include:
-- description of the issue
-- evidence (file + line range)
-- customer impact
-- severity (P0 / P1 / P2)
-- confidence (High / Medium / Low)
-- recommended improvement or investigation
-- validation notes (if needed)
+## Lens Output Requirements (Structured Join Keys + Explicit Boundary Naming)
+
+In addition to the narrative assessment, each lens MUST emit structured fields that allow
+deterministic joining to `resilience/discovery/discovery.json`, and must explicitly name
+interface/pattern boundaries when findings imply boundary introduction.
+
+### backlog.csv (required fields)
+Each row MUST include the following columns (CSV-compatible):
+
+| Field | Description |
+|---|---|
+| Role | Deployment unit / role name |
+| Lens | Analytical lens name |
+| FindingId | Stable finding identifier within the lens (e.g., PS-01, DD-03, ML-02, DI-07) |
+| Finding | Clear description of the risk |
+| Evidence | File + line range (may be multiple; separate with `;`) |
+| CustomerImpact | Observable user-facing impact |
+| Severity | P0 / P1 / P2 |
+| Confidence | High / Medium / Low |
+| Improvement | Actionable change (or investigation task) |
+| Scope | Role-local / Cross-role |
+| Effort | S / M / L |
+| EntrypointIds | One or more entrypoint `id`s from `discovery.json.entrypoints[]` (comma-separated). Use `UNKNOWN` only if truly not mappable. |
+| EndpointBindings | One or more full entrypoint bindings (verbatim from discovery, e.g., `HTTP POST /v1/.../Messages`). Comma-separated. Use `UNKNOWN` only if truly not mappable. |
+| DependencyIds | One or more dependency `dependency_id`s from `discovery.json.outbound_dependencies[]` (comma-separated). Use `UNKNOWN` only if truly not mappable. |
+| Plane | `control` / `operational` / `mixed` / `unknown` (only when explicitly evidenced by the lens; otherwise `unknown`) |
+| BoundaryType | One of: `gateway` \| `facade` \| `adapter` \| `port` \| `anti_corruption_layer` \| `module_seam` \| `cache_boundary` \| `bulkhead` \| `outbox` \| `timeout_budget` \| `circuit_breaker` \| `unknown` |
+| BoundaryName | Stable name for the boundary/pattern target (e.g., `RoutingFacade`, `ProviderGateway`, `DeliveryCallbackParser`, `DynamoBulkhead`, `OutboxPublisher`). Use `unknown` only if not applicable. |
+| AdapterNames | Optional list of concrete adapters/modules to implement (e.g., `InfobipCallbackParser; TwilioCallbackParser`). Use `—` if not applicable. |
+| Notes | Validation or follow-ups |
+
+Rules:
+- `EntrypointIds`, `EndpointBindings`, and `DependencyIds` MUST refer to discovery outputs, not free-text names.
+- `EndpointBindings` MUST be copied verbatim from discovery to ensure outputs contain full endpoint paths (not just IDs).
+- If multiple entrypoints/dependencies apply, list all.
+- If the lens cannot map to entrypoints/dependencies with evidence, mark as `UNKNOWN` and add a validation question in the lens doc.
+- The lens MUST NOT invent dependencies not present in discovery; doing so is an invalid output.
+
+Boundary naming rules (non-negotiable):
+- For Domain Decoupling (Lens 2): if the finding recommends extraction, consolidation, adapters/parsers, or decoupling, `BoundaryType` and `BoundaryName` MUST be populated (not `unknown`).
+- For Modulith (Lens 3): if the finding introduces a seam/module boundary or isolates resources per module, `BoundaryType` MUST be `module_seam` or `bulkhead` and `BoundaryName` MUST be populated.
+- For Plane Separation (Lens 1): if the finding introduces caching/LKG/background refresh off the request path, use `BoundaryType=cache_boundary` with a meaningful `BoundaryName` (e.g., `RoutingLKGCache`). If it splits executors/thread pools, use `BoundaryType=bulkhead`.
+- For Dependency Isolation (Lens 4): use `BoundaryType` such as `circuit_breaker`, `timeout_budget`, `bulkhead`, or `outbox` when applicable. If the finding is purely tuning (no structural boundary), set `BoundaryType=unknown`.

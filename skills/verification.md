@@ -98,6 +98,18 @@ Avoid framing impact purely in internal or architectural terms unless explicitly
 
 ---
 
+## Allowed: Mechanical Merges and Computed Fields (Non-Finding)
+
+The system may generate artifacts that mechanically merge discovery and lens outputs
+(e.g., dependency-first rollup tables) provided that:
+
+- No new findings are created
+- No severities/confidence are altered
+- Computed fields (e.g., MaxSeverity) are clearly labeled as computed and traceable to existing findings
+- All factual fields remain evidence-backed
+
+---
+
 ## Consistency Checks (Before Emitting Outputs)
 Before writing final artifacts, ensure:
 1) Every finding includes:

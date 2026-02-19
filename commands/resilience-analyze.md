@@ -77,6 +77,14 @@ Each finding MUST include:
 - recommended change (1–3 bullets) OR investigation task (if evidence is insufficient)
 - validation steps (1–3 bullets)
 
+Structured join keys + boundary naming (required in `backlog.csv`):
+- `FindingId` (stable within lens)
+- `EntrypointIds` (from discovery entrypoints)
+- `EndpointBindings` (full bindings copied verbatim from discovery; e.g., `HTTP POST /v1/.../Messages`)
+- `DependencyIds` (from discovery outbound dependencies)
+- `Plane` (control/operational/mixed/unknown when explicitly evidenced; else unknown)
+- `BoundaryType`, `BoundaryName`, `AdapterNames` (per `skills/lenses.md`)
+
 If evidence cannot be found:
 - mark the finding as `UNKNOWN`
 - emit a validation question instead of a recommendation
@@ -96,21 +104,42 @@ Guidelines:
 
 ---
 
+### 5) Generate Diagrams (arch-after.mmd) When Warranted
+For each selected lens:
+- Generate `arch-after.mmd` when warranted by findings, per `skills/reporting.md`.
+- Do not generate diagrams for purely behavioral/config-only findings.
+
+Diagrams must:
+- remain within a single deployment unit
+- avoid regions/cells/topology assumptions
+- conform to Mermaid rules in `skills/reporting.md`
+
+---
+
+### 6) Generate Dependency-First Rollup Table (Mechanical Merge)
+Generate `resilience/role_dependency_table.csv` as defined in `skills/reporting.md`.
+
+Rules:
+- Mechanical join only (no new findings)
+- Coverage guarantee: every discovered dependency appears at least once
+- Use structured join keys from `backlog.csv` (`DependencyIds`, `EntrypointIds`, `EndpointBindings`)
+
+---
+
 ## Outputs
 
 ### Output Structure
-All outputs are written under `resilience/` using **lens-scoped directories only**.
-
-There is **no aggregated summary output**.
+All outputs are written under `resilience/` using lens-scoped directories plus the per-role mechanical rollup.
 
 resilience/
-    ├── discovery/
-    │   ├── discovery.json
-    │   └── arch-before.mmd
-    ├── lens_plane-separation/
-    ├── lens_domain-decoupling/
-    ├── lens_modulith/
-    └── lens_dependency-isolation/
+├── discovery/
+│   ├── discovery.json
+│   └── arch-before.mmd
+├── lens_plane-separation/
+├── lens_domain-decoupling/
+├── lens_modulith/
+├── lens_dependency-isolation/
+└── role_dependency_table.csv
 
 ### Per-lens Outputs (always)
 Write lens-scoped artifacts under:
@@ -120,14 +149,13 @@ Each lens folder MUST include:
 1) `role_assessment.md`
 2) `backlog.csv`
 
-Optional per lens (only when relevant / evidenced):
+Optional per lens (generated when warranted by findings):
 3) `dependency_inventory.csv`
 4) `arch-after.mmd`
 
 Notes:
 - Per-lens outputs must stand on their own.
 - If a lens yields no meaningful findings, still emit `role_assessment.md` with “No findings” and list any open questions.
-- arch-after.mmd (optional, but SHOULD be generated when the lens identifies at least one boundary-strengthening improvement—e.g., adapters/facades for domain-decoupling, caching/LKG boundaries for plane-separation, or internal module seams for modulith. Diagrams must remain conceptual and must not introduce new deployment units or regions.)
 
 ---
 

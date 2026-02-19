@@ -87,6 +87,9 @@ Classification of control-plane vs operational behavior is deferred to discovery
     - Flask route decorators
     - FastAPI route decorators
 
+Notes:
+- Webhook/callback endpoints are `type: sync` (HTTP), even if asynchronous relative to the originating transaction.
+
 #### Asynchronous Entrypoints (`type: async`)
 
 - Java:
@@ -101,6 +104,10 @@ Classification of control-plane vs operational behavior is deferred to discovery
     - Celery tasks
     - Background consumers or workers
 
+Notes:
+- If async entrypoints are implemented without framework annotations (custom registration or shared-library wiring),
+  capture them only when the consumer loop/registration is explicitly evidenced.
+
 For each entrypoint, capture:
 - `id` (stable; derived from name + file path)
 - `name` (function / class / handler)
@@ -108,6 +115,16 @@ For each entrypoint, capture:
 - `framework`
 - `binding` (route / topic / queue / schedule, if detectable)
 - `evidence`: file path + line range
+
+#### Binding normalization (recommended)
+When `binding` is detectable, normalize it as:
+- HTTP: `"<METHOD> <PATH>"` (e.g., `"POST /v1/Messages/TwilioCallback"`)
+- Kafka: `"kafka:<topic>"`
+- SQS: `"sqs:<queueNameOrArn>"`
+- Schedule: `"cron:<expr>"` or `"fixedDelay:<ms>"`
+
+Rules:
+- If `binding` is not directly evidenced, set `binding: unknown`.
 
 Entrypoints identified here are **authoritative**.
 Additional entrypoints may only be added later with explicit evidence.

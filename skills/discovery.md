@@ -33,15 +33,20 @@ Discovery produces a single normalized model with the following sections.
 ### 2) `entrypoints[]`
 Operational execution entrypoints into the system.
 
+Entrypoints identified in `skills/main.md` are authoritative.
+Additional entrypoints may be added only with evidence.
+
 For each entrypoint, capture:
+- `id` (stable; derived from name + file path)
 - `name`
 - `type`: `sync` | `async`
 - `framework`
-- `route` / `topic` / `queue` (if detectable)
+- `binding` (route / topic / queue / schedule, if detectable)
 - `evidence`: file path + line range
 
-Entrypoints identified in `skills/main.md` are authoritative.
-Additional entrypoints may be added only with evidence.
+Notes:
+- `binding` should be the concrete route/topic/queue when directly detectable; otherwise `unknown`.
+- Do not infer execution semantics beyond the `sync`/`async` classification from `skills/main.md`.
 
 ---
 
@@ -66,7 +71,8 @@ If invocation context is ambiguous, mark as `unknown`.
 Observed outbound dependencies referenced in the codebase.
 
 For each dependency:
-- `dependency_name`
+- `dependency_id` (stable canonical slug; e.g., `accsec-verify-routing`, `dynamodb`, `redis`)
+- `dependency_name` (human-readable display name)
 - `dependency_type`:
     - `internal_service`
     - `third_party_api`
@@ -79,7 +85,10 @@ For each dependency:
     - `control_plane`
     - `unknown`
 
-Do not infer dependency semantics, guarantees, or SLAs.
+Rules:
+- Do not infer dependency semantics, guarantees, or SLAs.
+- `dependency_id` MUST be stable within the repo and consistent across lens outputs.
+- If canonicalization is ambiguous, use a best-effort slug and add an open question.
 
 ---
 

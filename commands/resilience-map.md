@@ -27,7 +27,13 @@ Consume outputs from `skills/main.md`, including:
 - detected language and framework
 - operational entrypoints (`sync` / `async`) with evidence
 
+Entrypoints identified by `skills/main.md` are authoritative and MUST be reused.
 Do not re-detect entrypoints unless additional ones are found with evidence.
+
+Ensure each entrypoint includes:
+- `id` (stable)
+- `binding` (normalized when detectable; else `unknown`)
+- `evidence`
 
 ---
 
@@ -51,7 +57,9 @@ Identify outbound dependencies referenced in the repository:
 - queues or streams
 
 For each dependency, record:
-- dependency name and type
+- `dependency_id` (stable canonical slug)
+- `dependency_name` (display name)
+- `dependency_type`
 - call sites with evidence
 - call path classification (best effort): `sync_operational` | `control_plane` | `async` | `unknown`
 
@@ -91,6 +99,7 @@ Write all outputs under a `resilience/` directory.
         - control-plane operations (if identifiable)
         - external dependencies
     - Must not include proposed changes.
+    - Must conform to Mermaid generation rules in `skills/reporting.md`.
 
 ---
 
