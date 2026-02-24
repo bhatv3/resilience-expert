@@ -35,6 +35,8 @@ Ensure each entrypoint includes:
 - `binding` (normalized when detectable; else `unknown`)
 - `evidence`
 
+Write these to `discovery.json.operational_entrypoints[]`.
+
 ---
 
 ### 2) Identify Control-Plane Operations (Best Effort)
@@ -47,6 +49,8 @@ Discover control-plane code paths, including:
 
 Record invocation context when determinable; otherwise mark as `unknown`.
 
+Write these to `discovery.json.control_plane_ops[]`.
+
 ---
 
 ### 3) Identify Outbound Dependencies (Observed)
@@ -54,7 +58,10 @@ Identify outbound dependencies referenced in the repository:
 - internal services
 - third-party APIs
 - datastores
+- caches
 - queues or streams
+
+Write these to `discovery.json.outbound_dependencies[]`.
 
 For each dependency, record:
 - `dependency_id` (stable canonical slug)
@@ -62,9 +69,10 @@ For each dependency, record:
 - `dependency_type`
 - call sites with evidence
 - call path classification (best effort): `sync_operational` | `control_plane` | `async` | `unknown`
+- `data_assets[]` (optional; best effort): list of `asset_id` values referencing `regionalization_facts.data_assets_observed[]` when evidence supports the linkage
 
-For datastore/stream dependencies:
-- Attempt to capture concrete identifiers (e.g., table names, topic names, queue names, bucket names) **only when visible** in code or config.
+For datastore/stream/cache/queue dependencies:
+- Attempt to capture concrete identifiers (e.g., table names, topic names, queue names, key patterns, bucket names) **only when visible** in code or config.
 - Otherwise mark as `unknown`.
 
 Do not infer behavior, guarantees, SLAs, or failure posture.
@@ -72,12 +80,13 @@ Do not infer behavior, guarantees, SLAs, or failure posture.
 ---
 
 ### 4) Populate Minimal Regionalization Facts (Optional, Evidence-Backed)
-Populate `regionalization_facts.data_assets_observed[]` as defined in `skills/discovery.md`:
-- asset_type: `table` | `stream` | `cache` | `bucket` | `unknown`
-- engine: `dynamodb` | `redis` | `kafka` | `sqs` | `s3` | `unknown`
-- identifier: only if evidenced; else `unknown`
-- used_on_paths[]: `sync_operational` | `control_plane` | `async` | `unknown`
-- evidence: file path + line range
+Populate `discovery.json.regionalization_facts.data_assets_observed[]` as defined in `skills/discovery.md`:
+- `asset_id` (stable; best-effort; required to support linking from dependencies)
+- `asset_type`: `table` | `stream` | `cache` | `bucket` | `unknown`
+- `engine`: `dynamodb` | `redis` | `kafka` | `sqs` | `s3` | `unknown`
+- `identifier`: only if evidenced; else `unknown`
+- `used_on_paths[]`: `sync_operational` | `control_plane` | `async` | `unknown`
+- `evidence`: file path + line range
 
 Rules:
 - This step is observational only.

@@ -155,7 +155,7 @@ Do NOT generate `arch-after.mmd` when the lens produces only behavioral/config c
 
 #### Output completeness rule (non-negotiable)
 If a lens backlog.csv contains any row with `BoundaryType` in:
-`gateway, facade, adapter, port, anti_corruption_layer, module_seam, cache_boundary, bulkhead, outbox`
+`gateway, facade, adapter, port, anti_corruption_layer, module_seam, cache_boundary, bulkhead, outbox, published_events, read_path_optimization, internal_events, module_interface`
 then `arch-after.mmd` MUST be generated for that lens.
 If not generated, the lens output is considered incomplete.
 
@@ -191,7 +191,7 @@ and lens findings. It introduces NO new findings and performs NO new analysis.
 - If a dependency has no lens findings, it MUST still appear as an Inventory row.
 
 ### Row Guarantee (Coverage Requirement)
-For every entry in `discovery.json.dependencies[]`, emit at least one row.
+For every entry in `discovery.json.outbound_dependencies[]`, emit at least one row.
 
 If no findings map to the dependency:
 - `Lenses = Inventory`

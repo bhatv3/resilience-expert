@@ -33,7 +33,7 @@ If `resilience/discovery/discovery.json` exists, load it.
 Otherwise generate a minimal inline discovery model sufficient for the selected lenses:
 - operational entrypoints (required)
 - control-plane operations (best effort)
-- dependencies and call sites (best effort)
+- outbound dependencies and call sites (best effort)
 - regionalization_facts (optional best effort)
 
 Notes:
@@ -79,9 +79,9 @@ Each finding MUST include:
 
 Structured join keys + boundary naming (required in `backlog.csv`):
 - `FindingId` (stable within lens)
-- `EntrypointIds` (from discovery entrypoints)
-- `EndpointBindings` (full bindings copied verbatim from discovery; e.g., `HTTP POST /v1/.../Messages`)
-- `DependencyIds` (from discovery outbound dependencies)
+- `EntrypointIds` (from `discovery.json.operational_entrypoints[]`)
+- `EndpointBindings` (full endpoint bindings copied verbatim from discovery; e.g., `POST /v1/...` and/or equivalent discovery binding format). Use `UNKNOWN` only if truly not mappable.
+- `DependencyIds` (from `discovery.json.outbound_dependencies[]`)
 - `Plane` (control/operational/mixed/unknown when explicitly evidenced; else unknown)
 - `BoundaryType`, `BoundaryName`, `AdapterNames` (per `skills/lenses.md`)
 

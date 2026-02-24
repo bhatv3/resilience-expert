@@ -316,11 +316,11 @@ Each row MUST include the following columns (CSV-compatible):
 | Improvement | Actionable change (or investigation task) |
 | Scope | Role-local / Cross-role |
 | Effort | S / M / L |
-| EntrypointIds | One or more entrypoint `id`s from `discovery.json.entrypoints[]` (comma-separated). Use `UNKNOWN` only if truly not mappable. |
-| EndpointBindings | One or more full entrypoint bindings (verbatim from discovery, e.g., `HTTP POST /v1/.../Messages`). Comma-separated. Use `UNKNOWN` only if truly not mappable. |
+| EntrypointIds | One or more entrypoint `id`s from `discovery.json.operational_entrypoints[]` (comma-separated). Use `UNKNOWN` only if truly not mappable. |
+| EndpointBindings | One or more full entrypoint bindings (verbatim from discovery, e.g., `POST /v1/...`). Comma-separated. Use `UNKNOWN` only if truly not mappable. |
 | DependencyIds | One or more dependency `dependency_id`s from `discovery.json.outbound_dependencies[]` (comma-separated). Use `UNKNOWN` only if truly not mappable. |
 | Plane | `control` / `operational` / `mixed` / `unknown` (only when explicitly evidenced by the lens; otherwise `unknown`) |
-| BoundaryType | One of: `gateway` \| `facade` \| `adapter` \| `port` \| `anti_corruption_layer` \| `module_seam` \| `cache_boundary` \| `bulkhead` \| `outbox` \| `timeout_budget` \| `circuit_breaker` \| `unknown` |
+| BoundaryType | One of: `gateway` \| `facade` \| `adapter` \| `port` \| `anti_corruption_layer` \| `module_seam` \| `cache_boundary` \| `bulkhead` \| `outbox` \| `timeout_budget` \| `circuit_breaker` \| `published_events` \| `read_path_optimization` \| `internal_events` \| `module_interface` \| `unknown` |
 | BoundaryName | Stable name for the boundary/pattern target (e.g., `RoutingFacade`, `ProviderGateway`, `DeliveryCallbackParser`, `DynamoBulkhead`, `OutboxPublisher`). Use `unknown` only if not applicable. |
 | AdapterNames | Optional list of concrete adapters/modules to implement (e.g., `InfobipCallbackParser; TwilioCallbackParser`). Use `—` if not applicable. |
 | Notes | Validation or follow-ups |

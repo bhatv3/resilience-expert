@@ -30,7 +30,7 @@ Discovery produces a single normalized model with the following sections.
 
 ---
 
-### 2) `entrypoints[]`
+### 2) `operational_entrypoints[]`
 Operational execution entrypoints into the system.
 
 Entrypoints identified in `skills/main.md` are authoritative.
@@ -67,16 +67,24 @@ If invocation context is ambiguous, mark as `unknown`.
 
 ---
 
-### 4) `dependencies[]`
+### 4) `outbound_dependencies[]`
 Observed outbound dependencies referenced in the codebase.
 
+Outbound dependencies include **services and data-plane systems** used by the role, such as:
+- internal HTTP/gRPC services
+- third-party APIs
+- datastores (e.g., DynamoDB)
+- caches (e.g., Redis)
+- queues and streams (e.g., SQS, Kafka)
+
 For each dependency:
-- `dependency_id` (stable canonical slug; e.g., `accsec-verify-routing`, `dynamodb`, `redis`)
+- `dependency_id` (stable canonical slug; e.g., `accsec-verify-routing`, `dynamodb-comms`, `redis-feedback-cache`)
 - `dependency_name` (human-readable display name)
 - `dependency_type`:
     - `internal_service`
     - `third_party_api`
     - `datastore`
+    - `cache`
     - `queue_or_stream`
 - `call_sites[]` with evidence
 - `call_path` (best effort):
@@ -84,11 +92,17 @@ For each dependency:
     - `async`
     - `control_plane`
     - `unknown`
+- `data_assets[]` (optional; best effort)
+    - list of `asset_id` values referencing `regionalization_facts.data_assets_observed[]`
 
 Rules:
 - Do not infer dependency semantics, guarantees, or SLAs.
 - `dependency_id` MUST be stable within the repo and consistent across lens outputs.
 - If canonicalization is ambiguous, use a best-effort slug and add an open question.
+- `data_assets[]` MUST reference only `asset_id`s that are explicitly emitted under `regionalization_facts.data_assets_observed[]`.
+- If a dependency clearly maps to a data asset but the asset identifier is not visible (and thus the asset `identifier` is `unknown`), either:
+    - omit `data_assets[]`, or
+    - reference an asset whose `identifier` is `unknown` but still has an `asset_id` (only if evidence supports the existence of the asset).
 
 ---
 
@@ -99,6 +113,7 @@ A minimal, observational appendix to support global vs local classification with
 For each observed data asset, capture only what is explicitly visible in code or configuration.
 
 Each entry should include:
+- `asset_id` (stable identifier for cross-referencing; derived from engine + identifier or evidence location; if ambiguous, use best-effort and add an open question)
 - `asset_type`: `table` | `stream` | `cache` | `bucket` | `unknown`
 - `engine`: `dynamodb` | `redis` | `kafka` | `sqs` | `s3` | `unknown`
 - `identifier`: concrete name when visible (e.g., table name, topic, queue, bucket); else `unknown`
@@ -112,6 +127,7 @@ Each entry should include:
 Rules:
 - Only include identifiers that are directly evidenced.
 - Do not infer regional locality, replication, tenancy, or data residency.
+- `asset_id` exists to support deterministic linking from `outbound_dependencies[]` and must not encode inferred topology.
 
 This section is optional; if no data assets can be observed with evidence, emit an empty list.
 
